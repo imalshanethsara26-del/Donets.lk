@@ -1,9 +1,8 @@
 FROM node:18-alpine
 WORKDIR /app
 
-# package.json සහ index.js එක එකවර කොපි කිරීම
-COPY package.json ./
-COPY index.js ./
+# සියලුම ෆයිල්ස් එකවර /app ෆෝල්ඩර් එකට කොපි කිරීම
+COPY . /app/
 
 RUN npm install
 
