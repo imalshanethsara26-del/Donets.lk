@@ -1,6 +1,5 @@
-FROM node:18-alpine
+FROM node:20-alpine
 
-# git සහ අවශ්‍ය ටූල්ස් ඉන්ස්ටෝල් කිරීම සඳහා
 RUN apk add --no-cache git
 
 WORKDIR /app
