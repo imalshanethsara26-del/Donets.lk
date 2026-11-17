@@ -5,7 +5,6 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ටෙලිග්‍රෑම් දත්ත
 const TELEGRAM_BOT_TOKEN = '9243725983:AAEYZmfYPvFW1VNNB-Fo-c2cWW4K5ajng_4';
 const TELEGRAM_CHAT_ID = '2022295826';
 
@@ -18,12 +17,11 @@ async function sendTelegramAlert(message) {
         const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
         await axios.post(url, {
             chat_id: TELEGRAM_CHAT_ID,
-            text: message,
-            parse_mode: 'Markdown'
+            text: message
         });
         console.log('Telegram Alert Sent Successfully!');
     } catch (error) {
-        console.error('Error sending telegram message:', error.message);
+        console.error('Error sending telegram message:', error.response?.data || error.message);
     }
 }
 
@@ -35,7 +33,6 @@ async function checkExamSite() {
         const $ = cheerio.load(response.data);
         const currentBodyText = $('body').text().replace(/\s+/g, ' ').trim();
         
-        // සයිට් එකේ ප්‍රධාන ශීර්ෂ (Headings/Titles) සහ ලින්ක්ස් එකතු කර ගැනීම
         let currentHeadings = '';
         $('h1, h2, h3, a').each((i, el) => {
             currentHeadings += $(el).text().trim() + ' ';
@@ -50,10 +47,7 @@ async function checkExamSite() {
             return;
         }
 
-        // 1. "2026" වර්ෂය අලුතින් මතුවී ඇත්දැයි බැලීම
         const is2026New = currentBodyText.includes('2026') && !previousBodyText.includes('2026');
-        
-        // 2. වෙනත් ඕනෑම සියුම් වෙනසක් (Text Length හෝ Headings වල වෙනසක්) සිදුවී ඇත්දැයි බැලීම
         const isTextChanged = currentBodyText !== previousBodyText;
         const isHeadingsChanged = currentHeadings !== previousHeadings;
 
@@ -62,13 +56,13 @@ async function checkExamSite() {
             
             let changeDetails = "විභාග දෙපාර්තමේන්තුවේ වෙබ් අඩවියේ යම් වෙනස්කමක් සිදුවී ඇත!\n";
             if (is2026New) {
-                changeDetails += "🔥 *විශේෂයි:* වෙබ් අඩවිය තුළට '2026' වර්ෂය එකතු වී ඇත!\n";
+                changeDetails += "🔥 විශේෂයි: වෙබ් අඩවිය තුළට '2026' වර්ෂය එකතු වී ඇත!\n";
             } else {
                 changeDetails += "ℹ️ වෙබ් අඩවියේ බැකෙන්ඩ් හෝ ඉදිරිපස දත්තවල සියුම් වෙනසක් සිදුවී ඇත.\n";
             }
 
             await sendTelegramAlert(
-                `🚨 *A/L Result Monitor Alert!*\n\n${changeDetails}\n🔗 පරීක්ෂා කරන්න: ${TARGET_URL}`
+                `🚨 A/L Result Monitor Alert!\n\n${changeDetails}\n🔗 පරීක්ෂා කරන්න: ${TARGET_URL}`
             );
         }
         
@@ -84,10 +78,10 @@ async function checkExamSite() {
 setInterval(checkExamSite, 3 * 60 * 1000);
 
 app.get('/', (req, res) => {
-    res.send('Exam Monitor Telegram Bot with Deep Change Detection is Running 24/7!');
+    res.send('Exam Monitor Telegram Bot is Running 24/7!');
 });
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    sendTelegramAlert('✅ Exam Monitor Bot Started Successfully on Railway! (Deep Inspection Active)');
+    sendTelegramAlert('✅ Exam Monitor Bot Started Successfully on Railway!');
 });
